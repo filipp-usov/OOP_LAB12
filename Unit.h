@@ -18,13 +18,14 @@ public:
     int getId() const { return id; }
     int getX() const { return x; }
     int getY() const { return y; }
-    Health getHealth() const { return health; }
+    Health& getHealth() { return health; } 
+    const Health& getHealth() const { return health; }
     
     void move(int newX, int newY) { x = newX; y = newY; }
 
     void takeDamage(int dmg) {
-        int finalDmg = attack.calculateDamage(armor); 
-        health.decrease(dmg);
+        int finalDmg = armor.reduceDamage(dmg); 
+        health.decrease(finalDmg);
         notify({EventType::Damaged, id, "Unit damaged"});
         if (health.isZero()) {
             notify({EventType::Destroyed, id, "Unit destroyed"});

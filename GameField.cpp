@@ -1,11 +1,9 @@
 #include "GameField.h"
-#include <Windows.h>
 #include <iostream>
 #include <algorithm>
+#include <Windows.h>
 
-GameField::GameField(int w, int h, int maxU) : width(w), height(h), maxUnits(maxU) {
-    initTerrain(w, h);
-}
+GameField::GameField(int w, int h, int maxU) : width(w), height(h), maxUnits(maxU) { initTerrain(w, h); }
 GameField::~GameField() { clear(); }
 
 void GameField::clear() {
@@ -81,7 +79,11 @@ void GameField::setTerrain(int x, int y, std::shared_ptr<Terrain> t) {
     if (y >= 0 && y < height && x >= 0 && x < width) terrainMap[y][x] = t;
 }
 
+
 TerrainProxy GameField::getTerrainProxy(int x, int y) {
+    if (x < 0 || x >= width || y < 0 || y >= height) {
+        return TerrainProxy(std::make_shared<Plains>());
+    }
     return TerrainProxy(terrainMap[y][x]);
 }
 
@@ -99,7 +101,7 @@ void GameField::printField() const {
     for (Unit* u : units) {
         char symbol = '?';
         std::string type = u->getType();
-        if (type == "Swordsman") symbol = 'M';         
+        if (type == "Swordsman") symbol = 'S';         
         else if (type == "Spearman") symbol = 'K';     
         else if (type == "LightArcher") symbol = 'L';  
         else if (type == "HeavyArcher") symbol = 'T';  
@@ -116,26 +118,21 @@ void GameField::printField() const {
     std::cout << "  "; for (int i = 0; i < width; ++i) std::cout << "X "; std::cout << "\n";
 }
 
-
 void GameField::printMap(int heroX, int heroY, std::string heroType) const {
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-
     std::cout << "   ";
     for (int i = 0; i < width; ++i) std::cout << i << " ";
     std::cout << "\n";
-
     std::cout << "  ";
     for (int i = 0; i < width; ++i) std::cout << "X ";
     std::cout << "\n";
 
     for (int i = 0; i < height; ++i) {
-        std::cout << i << " X ";
-
+        std::cout << i << " X "; 
         for (int j = 0; j < width; ++j) {
             char symbol = '.'; 
-            int color = 8;
+            int color = 8;     
 
-            
             if (i == heroY && j == heroX) {
                 if (heroType == "Swordsman") symbol = 'S';
                 else if (heroType == "Spearman") symbol = 'K';
@@ -143,24 +140,21 @@ void GameField::printMap(int heroX, int heroY, std::string heroType) const {
                 else if (heroType == "HeavyArcher") symbol = 'T';
                 else if (heroType == "Cataphract") symbol = 'C';
                 else if (heroType == "HorseArcher") symbol = 'H';
-
+                else symbol = '?';
                 color = 14; 
-            }
+            } 
             else if (terrainMap[i][j]) {
                 std::string tName = terrainMap[i][j]->getName();
                 if (tName == "Forest") { symbol = '*'; color = 10; }
                 else if (tName == "Mountains") { symbol = '^'; color = 6; }
                 else if (tName == "Swamp") { symbol = '~'; color = 1; }
             }
-
             SetConsoleTextAttribute(hConsole, color);
             std::cout << symbol << " ";
         }
-
-        SetConsoleTextAttribute(hConsole, 7); 
-        std::cout << "X\n";
+        SetConsoleTextAttribute(hConsole, 7);
+        std::cout << "X\n"; 
     }
-
     std::cout << "  ";
     for (int i = 0; i < width; ++i) std::cout << "X ";
     std::cout << "\n";

@@ -43,8 +43,8 @@ void runLab2() {
     InfantryFactory infFactory;
 
     std::cout << "\n Scenario 2.1: Base and Units creation (Observer) \n";
-    Base myBase(1000, 5, &infFactory);
-    myBase.createUnit("Swordsman", 1, 1);
+    Base myBase(5, 5, 1000, 5, 10, 500, &infFactory); 
+    myBase.createUnit("Swordsman", 1, 1); 
     myBase.createUnit("Spearman", 2, 2);
 
     std::cout << "\n Scenario 2.2: Movement and Proxy \n";
@@ -52,36 +52,41 @@ void runLab2() {
     newField.initTerrain(10, 10);
 
     
-    newField.setTerrain(2, 1, std::make_shared<Forest>());
-    newField.setTerrain(3, 1, std::make_shared<Forest>());
-    newField.setTerrain(1, 3, std::make_shared<Forest>());
-    newField.setTerrain(2, 3, std::make_shared<Forest>());
-    newField.setTerrain(6, 2, std::make_shared<Forest>());
-    newField.setTerrain(7, 3, std::make_shared<Forest>());
-    newField.setTerrain(8, 5, std::make_shared<Forest>());
-    newField.setTerrain(4, 7, std::make_shared<Forest>());
-    newField.setTerrain(5, 8, std::make_shared<Forest>());
-    newField.setTerrain(4, 1, std::make_shared<Mountains>());
-    newField.setTerrain(8, 1, std::make_shared<Mountains>());
-    newField.setTerrain(5, 4, std::make_shared<Mountains>());
-    newField.setTerrain(6, 4, std::make_shared<Mountains>());
-    newField.setTerrain(1, 7, std::make_shared<Mountains>());
-    newField.setTerrain(2, 8, std::make_shared<Mountains>());
-    newField.setTerrain(5, 2, std::make_shared<Swamp>());
-    newField.setTerrain(7, 7, std::make_shared<Swamp>());
-    newField.setTerrain(8, 7, std::make_shared<Swamp>());
-    newField.setTerrain(3, 5, std::make_shared<Swamp>());
-    newField.setTerrain(9, 9, std::make_shared<Swamp>());
-    newField.setTerrain(6, 9, std::make_shared<Forest>());
-    newField.setTerrain(0, 5, std::make_shared<Mountains>());
+    srand(42); 
+    for (int y = 0; y < 10; ++y) {
+        for (int x = 0; x < 10; ++x) {
+            int r = rand() % 100; 
 
-    Unit* hero = myBase.getUnit(0);
+            
+            if (y == 1 && x >= 0 && x <= 5) {
+                newField.setTerrain(x, y, std::make_shared<Plains>());
+                continue;
+            }
+
+            if (r < 25) {
+                newField.setTerrain(x, y, std::make_shared<Forest>());     
+            }
+            else if (r < 40) {
+                newField.setTerrain(x, y, std::make_shared<Mountains>());  
+            }
+            else if (r < 55) {
+                newField.setTerrain(x, y, std::make_shared<Swamp>());      
+            }
+            else {
+                newField.setTerrain(x, y, std::make_shared<Plains>());     
+            }
+        }
+    }
 
     
+    newField.setTerrain(3, 1, std::make_shared<Forest>());
+    newField.setTerrain(4, 1, std::make_shared<Mountains>());
+
+    Unit* hero = myBase.getUnit(0);
     std::string heroType = hero->getType();
 
     std::cout << "\nInitial map (. - plains, * - forest, ^ - mountains, ~ - swamp):\n";
-    newField.printMap(hero->getX(), hero->getY(), heroType); 
+    newField.printMap(hero->getX(), hero->getY(), heroType);
 
     std::cout << "\nHero starts moving from (1, 1) to the right...\n";
 
@@ -93,12 +98,10 @@ void runLab2() {
 
         TerrainProxy proxy = newField.getTerrainProxy(newX, newY);
 
-        if (proxy.checkPassable(*hero)) {
-            proxy.getSpeed(*hero);
+        if (proxy.isPassable(*hero)) {
+            proxy.getSpeedModifier(*hero);
             hero->move(newX, newY);
             std::cout << "Success! Hero is now at (" << hero->getX() << ", " << hero->getY() << ").\n";
-
-            
             newField.printMap(hero->getX(), hero->getY(), heroType);
         }
         else {
@@ -108,21 +111,29 @@ void runLab2() {
     }
 
     std::cout << "\n Scenario 2.3: Interaction with objects (Overload) \n";
-    newField.addObject(hero->getX(), hero->getY(), std::make_unique<TreasureChest>());
-    NeutralObject* obj1 = newField.getObjectAt(hero->getX(), hero->getY());
-    if (auto* chest = dynamic_cast<TreasureChest*>(obj1)) {
-        *hero + *chest;
-    }
+    
+    TreasureChest chest;
+    *hero + chest; 
+
+    Trap trap;
+    *hero - trap;
+
+    Altar altar;
+    *hero* altar;
+
+    EnergySource source;
+    *hero / source;
 
     std::cout << "\n Scenario 2.4: Unit destruction and Observer \n";
     std::cout << "Dealing lethal damage to Hero...\n";
-    hero->takeDamage(200); 
+    hero->takeDamage(500); 
 }
 
 int main() {
+    setlocale(LC_ALL, "Russian");
     int choice = 0;
     while (true) {
-        std::cout << "    MAIN MENU \n";
+        std::cout << "    MAIN MENU (MMO RPG)\n";
         std::cout << "1. Run Lab 1 scenarios\n";
         std::cout << "2. Run Lab 2 scenarios\n";
         std::cout << "0. Exit\n";

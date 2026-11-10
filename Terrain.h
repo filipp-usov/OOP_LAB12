@@ -22,9 +22,13 @@ public:
 
 class Forest : public Terrain {
 public:
-    bool isPassable(const Unit&) const override { return true; }
+    bool isPassable(const Unit& unit) const override {
+        if (unit.getType() == "Cataphract") return false;
+        return true;
+    }
     double getSpeedModifier(const Unit& unit) const override {
-        return (unit.getType() == "Swordsman" || unit.getType() == "Spearman") ? 0.5 : 1.0;
+        if (unit.getType() == "Swordsman" || unit.getType() == "Spearman") return 0.5;
+        return 1.0;
     }
     double getDefenseBonus(const Unit&) const override { return 0.2; }
     std::string getName() const override { return "Forest"; }
@@ -32,7 +36,9 @@ public:
 
 class Mountains : public Terrain {
 public:
-    bool isPassable(const Unit& unit) const override { return true; }
+    bool isPassable(const Unit& unit) const override {
+        return unit.getType() == "HorseArcher"; 
+    }
     double getSpeedModifier(const Unit&) const override { return 0.5; }
     double getDefenseBonus(const Unit&) const override { return 0.3; }
     std::string getName() const override { return "Mountains"; }
@@ -40,28 +46,39 @@ public:
 
 class Swamp : public Terrain {
 public:
-    bool isPassable(const Unit&) const override { return true; }
+    bool isPassable(const Unit& unit) const override {
+        return (unit.getId() % 2 == 0); 
+    }
     double getSpeedModifier(const Unit&) const override { return 0.3; }
     double getDefenseBonus(const Unit&) const override { return -0.1; }
     std::string getName() const override { return "Swamp"; }
 };
 
-class TerrainProxy {
+
+class TerrainProxy : public Terrain {
 private:
     std::shared_ptr<Terrain> realTerrain;
 public:
     TerrainProxy(std::shared_ptr<Terrain> t) : realTerrain(t) {}
 
-    bool checkPassable(const Unit& unit) const {
+    bool isPassable(const Unit& unit) const override {
         bool passable = realTerrain->isPassable(unit);
         std::cout << "[Proxy] Passability check for " << unit.getType() 
                   << " on " << realTerrain->getName() << ": " << (passable ? "Yes" : "No") << "\n";
         return passable;
     }
 
-    double getSpeed(const Unit& unit) const {
+    double getSpeedModifier(const Unit& unit) const override {
         double speed = realTerrain->getSpeedModifier(unit);
         std::cout << "[Proxy] Speed on " << realTerrain->getName() << " = " << speed << "\n";
         return speed;
+    }
+
+    double getDefenseBonus(const Unit& unit) const override {
+        return realTerrain->getDefenseBonus(unit);
+    }
+
+    std::string getName() const override {
+        return realTerrain->getName();
     }
 };
